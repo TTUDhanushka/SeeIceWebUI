@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/eventemitter3@latest/dist/eventemitter3.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1.1.0/build/roslib.min.js"></script>
+</head>
+<body>
+    <div id="map_view">
+        
+    </div>
+
+    <div>
+        <button id="test_btn">Test</button>
+    </div>
+    <div>
+        <div class="camera_views">
+            <p>Camera views</p>
+            <canvas id="camera_view_1" width="640" height="480"></canvas>
+
+            <canvas id="camera_view_2" width="640" height="480"></canvas>
+
+            <canvas id="camera_view_3" width="640" height="480"></canvas>
+        </div>
+    </div>
+
+
+    <div id="results">
+        <h2 id="string_value"></h2>
+    </div>
+    <script src="/main.js"></script>
+</body>
+</html>
