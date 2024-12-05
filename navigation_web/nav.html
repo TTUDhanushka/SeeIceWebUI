@@ -3,18 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Ice Navigation Web UI</title>
+
+    <!-- Compiled and minified CSS -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/lumen/bootstrap.min.css" 
+    integrity="sha384-GzaBcW6yPIfhF+6VpKMjxbTx6tvR/yRd/yJub90CqoIn2Tz4rRXlSpTFYMKHCifX" crossorigin="anonymous"> -->
+
+    <!-- Import google icons font -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+
+    <!-- Leaflet stylesheet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- roslibjs insertion -->
     <script src="https://unpkg.com/eventemitter3@latest/dist/eventemitter3.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/roslib@1.1.0/build/roslib.min.js"></script>
-</head>
-<body>
-    <div id="map_view">
-        
-    </div>
 
-    <div>
+    <!-- Main local stylesheet -->
+    <link rel="stylesheet" type="text/css" href="main.css">  
+</head>
+<body onload="initialize_map()">
+    <nav class="navbar mavbar-expand-lg">
+        <div>
+            <a href="../camera_ui.html" class="nav-item">Cameras</a>
+        </div>     
+    </nav>
+    <aside>
+        <div class="vessel_nav_info">
+            <h5 style="display: inline;" class="info_headers">VTG</h5> 
+            <h5 style="display: inline;" class="info_values" id="vtg_value">0.0</h5>
+        </div>
+        <div class="vessel_nav_info">
+            <h5>Map source</h5>
+            <div class="drop-down-menu">
+                <select id="map_options" style="display: block;" onchange="getOption()">Map options
+                    <option class="map_option" value="open_sea_map" selected>OpenSeaMap</option>
+                    <option class="map_option" value="nutimeri">NutiMeri</option>
+                </select>
+            </div>
+            <br>
+            <h5>Coordinates</h5>
+            <div class="coordinates" >
+                
+                <a id="lat" style="display: inline-flex;">0.00</a>
+                <a id="lng" style="display: inline-flex;">0.00</a>
+            </div>
+        </div>
+    </aside>
+    <main>
+        <div class="content">
+            <div id="map_view">Map</div>
+
+        </div>      
+    </main>
+    <footer>
+        <p>Copyright &#169; Taltech</p>
+    </footer>
+
+
+
+    <!-- <div>
         <button id="test_btn">Test</button>
     </div>
     <div>
@@ -31,7 +82,7 @@
 
     <div id="results">
         <h2 id="string_value"></h2>
-    </div>
-    <script src="/main.js"></script>
+    </div> -->
+    <script src="nav.js"></script>
 </body>
 </html>

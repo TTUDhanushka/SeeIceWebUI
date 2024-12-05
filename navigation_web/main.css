@@ -1,1 +1,60 @@
-#map_view { height: 180px; }
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 300px ;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: 
+    "navbar navbar"
+    "main sidebar "
+    "footer footer";
+}
+
+
+nav{
+    top: 0;
+    position: sticky;
+    grid-area: navbar;
+    background-color: #263238 ;
+}
+
+main{
+    grid-area: main;
+}
+
+aside{
+    grid-area: sidebar;
+    background-color: #263238;
+    height: calc(100vh - 86.5px);
+    padding: 10px;
+}
+
+footer{
+    grid-area: footer;
+    background-color: #263238;
+    color: aliceblue;
+}
+
+.vessel_nav_info{
+    color: aliceblue;
+    display: inline;
+    align-self: center;
+}
+
+#map_view { 
+    height: calc(100vh - 86.5px); 
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.coordinates{
+    font-family:'Open sans' ,'Calibri', 'Verdana';
+    font-size: 16px;
+    font-style: normal;
+    color: aliceblue;
+}
