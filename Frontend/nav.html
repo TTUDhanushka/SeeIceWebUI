@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <div id="results">
+        <div id="results" style="color: #00D600;">
             <h2 id="string_value"></h2>
         </div>
         <div id="statusIndicator">
@@ -98,7 +98,7 @@
     <script>
         // Connecting to ROS -- local host to 37.157.77.203
         var ros = new ROSLIB.Ros({
-            url: 'ws://37.157.77.203:9090'
+            url: 'ws://0.0.0.0:9090'
         });
 
         // If there is an error on the backend, an 'error' will be emitted.
@@ -131,7 +131,7 @@
         var listener = new ROSLIB.Topic({
             ros: ros,
             name: '/pitch',
-            messageType: 'std_msgs/String'
+            messageType: 'std_msgs/Float32'
         });
 
         listener.subscribe(function(message){
