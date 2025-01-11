@@ -7,7 +7,7 @@
         <div class="video" id="camera1" style="display: flex;">
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
             <!-- <h3 style="text-align: center;">Left</h3> -->
-            <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" style="width: 50%; height: calcl(50% - 40px);"/>
+            <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" style="width: 100%; height: calcl(100% - 5px);"/>
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Left</div>
           </div>
@@ -15,7 +15,7 @@
         <div class="video" id="camera2" style="display: flex;">
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
             <!-- <h3 style="text-align: center;">Right</h3> -->
-            <img v-if="right_camera_feed" :src="right_camera_feed" alt="Camera Feed" style="width: 50%; height: calcl(50% - 40px);"/>
+            <img v-if="right_camera_feed" :src="right_camera_feed" :type="type" alt="Camera Feed" style="width: 100%; height: calcl(50% - 40px);"/>
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Right</div>
           </div>
@@ -28,11 +28,17 @@
 
         <!-- Right side bar - ROS info-->
         <div id="sidebar">
-          <h2>ROS Data</h2>
+          <h2>Telemetry</h2>
           <p>Connected to ROS: {{ isConnected ? "yes" : "no" }}</p>
-          <p>Pitch value: {{ pitch }}</p>
-          <p>Roll value {{ roll }}</p>
-          <p>Yaw value {{ yaw }}</p>
+          <p>Pitch: {{ pitch }}</p>
+          <p>Roll: {{ roll }}</p>
+          <p>Heading: {{ heading }}</p>
+
+          <p>Longitude: {{ lng }}</p>
+          <p>Latitude: {{ lat }}</p>
+
+          <p>Map Source</p>
+          <input type="checkbox" value="1" name="OpenSeaMap">
         </div>
       </div>
     </div>
@@ -52,10 +58,13 @@ export default {
       isConnected: false,
       pitch: "N/A",
       roll: "N/A",
-      yaw: "N/A",
+      heading: 0.0,
+      lng: "N/A",
+      lat: "N/A",
       map: null,
       left_camera_feed: null,
       right_camera_feed: null,
+      type: null,
     };
   },
   
@@ -112,53 +121,126 @@ export default {
         this.roll = message.data.toFixed(2);
       });
 
+      // Subscribe to heading topic
+      const hdtTopic = new ROSLIB.Topic({
+        ros: this.ros,
+        name: '/heading',
+        messageType: 'std_msgs/Float32',
+      });
+
+      hdtTopic.subscribe((message) => {
+        console.log("Received hdt:", message.data);
+        this.heading = message.data.toFixed(2);
+      });
+
+
+      // Subscribe to longitude topic
+      const longitudeTopic = new ROSLIB.Topic({
+        ros: this.ros,
+        name: '/longitude',
+        messageType: 'std_msgs/Float32',
+      });
+
+      longitudeTopic.subscribe((message) => {
+        console.log("Received lng:", message.data);
+        this.lng = message.data.toFixed(6);
+      });
+
+
+      // Subscribe to heading topic
+      const latitudeTopic = new ROSLIB.Topic({
+        ros: this.ros,
+        name: '/latitude',
+        messageType: 'std_msgs/Float32',
+      });
+
+      latitudeTopic.subscribe((message) => {
+        console.log("Received lat:", message.data);
+        this.lat = message.data.toFixed(6);
+      });
+
       const left_camera_image_Topic = new ROSLIB.Topic({
         ros: this.ros,
         name: "/cam1_image",
-        messageType: "sensor_msgs/Image",
+        messageType: "sensor_msgs/CompressedImage",
       });
 
       left_camera_image_Topic.subscribe((message) => {
         // Decode ROS image data (base64 encoding)
-        const {width, height, data, encoding} = message;
+        // const {width, height, data, encoding} = message;
 
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d");
-        const imageData = context.createImageData(width, height);
+        this.type = message.type;
+        // const canvas = document.createElement("canvas");
+        // console.log(`Width of the frame=${width}`); 
+        // canvas.height = height;
+        // const context = canvas.getContext("2d");
+        // const imageData = context.createImageData(width, height);
  
-        // Convert to base64
-        const rawData = this.arrayBufferToBase64(data);
-
-        console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`)      
-
-        if(data){
-          console.log("Data receiving", rawData.length);
-        }
-
-        // Decode image data.
-        if (encoding === "bgr8"){
-
-          for(let i = 0; i < rawData.length; i+=3){
-            const index = (i / 3) * 4;
-            imageData.data[index] = rawData[i + 2];
-            imageData.data[index + 1] = rawData[i + 1];
-            imageData.data[index + 2] = rawData[i];
-            imageData.data[index + 3] = 255;
-          }
-          console.log("RGB converted", imageData.size);
+        // // Convert to base64
+        // const rawData = this.arrayBufferToBase64(data);
+        // console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`)  
+        try{
+          console.log(`Message format=${message.format}`);   
+          // console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`);  
           
-          context.putImageData(imageData, 0, 0);
-          this.left_camera_feed = canvas.toDataURL("image/jpeg");
+          const rawData = this.arrayBufferToBase64(message.data);
 
+          const blob = new Blob([rawData], {type: "image/jpeg"});
+
+
+          const url = URL.createObjectURL(blob);
+
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          const image = new Image();
+
+          image.onload = () => {
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            context.drawImage(image, 0 ,0);
+
+            this.left_camera_feed = canvas.toDataURL("image/jpeg");
+
+            URL.revokeObjectURL(url);
+          }
+          // const base64Image = `data:image/jpeg;base64,${btoa(rawData)}`;
+          // this.left_camera_feed = base64Image;
+          image.src = url;
         }
-        else if (encoding === "rgb8"){
-          this.left_camera_feed = `data:image/jpeg;base64,${this.arrayBufferToBase64(data)}`; 
+        catch (error)
+        {
+          console.error("Failed to decode message");
         }
-        else{
-          console.warn("Unsupported image encoding", encoding);
-        }
+
+        // if(data){
+        //   console.log("Data receiving", rawData.length);
+        // }
+
+        // // Decode image data.
+        // if (encoding === "bgr8"){
+
+        // //   for(let i = 0; i < rawData.length; i+=3){
+        // //     const index = (i / 3) * 4;
+        // //     imageData.data[index] = rawData[i + 2];
+        // //     imageData.data[index + 1] = rawData[i + 1];
+        // //     imageData.data[index + 2] = rawData[i];
+        // //     imageData.data[index + 3] = 255;
+        // //   }
+        // //   console.log("RGB converted", imageData.size);
+          
+        // //   context.putImageData(imageData, 0, 0);
+        //   // this.left_camera_feed = canvas.toDataURL("image/jpeg");
+        //   console.log("Received BGR8 image");
+
+        // }
+        // else if (encoding === "rgb8"){
+        //   this.left_camera_feed = `data:image/jpeg;base64,${this.arrayBufferToBase64(data)}`; 
+        // }
+        // else{
+        //   this.left_camera_feed = `data:image/jpeg;base64,${this.data}`; 
+        //   console.warn("Unsupported image encoding", encoding);
+        // }
       });
 
       const right_camera_image_Topic = new ROSLIB.Topic({
@@ -299,7 +381,7 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  background-color: rgb(23, 24, 33);
 }
 
 #main-container {
@@ -307,6 +389,8 @@ export default {
   height: 100vh;
   overflow: hidden;
   flex-direction: column;
+  padding: 0;
+  margin: 0;
 }
 
 .row{
@@ -314,23 +398,36 @@ export default {
   flex: 1;
 }
 
-#map {
-  flex: 3;
-  height: 100%;
+div{
   padding: 0;
   margin: 0;
 }
 
+#sidebar  {
+  background-color: rgb(33, 34, 45);
+  border-radius: 10px;
+  margin: 10px 5px 0px 0px;
+  padding: 0px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+
+#map {
+  flex: 1;
+  height: 100%;
+  border-radius: 10px;
+  padding: 0;
+  margin: 10px;
+}
+
 #camera1 {
   flex: 1;
-  height: 50%;
   padding: 0;
   margin: 0;
 }
 
 #camera2 {
   flex: 1;
-  height: 50%;
   padding: 0;
   margin: 0;
 }
@@ -339,10 +436,10 @@ export default {
   position: absolute;
   top: 10px;
   left: 350px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: wheat;
+  background-color: rgba(33, 34, 40, 0.7);
+  color: rgb(255, 255, 255);
   padding: 5px 10px;
-  border-radius: 5px;
+  border-radius: 10px;
   font-size: 14px;
 }
 </style>
