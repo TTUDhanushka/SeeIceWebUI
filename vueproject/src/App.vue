@@ -6,7 +6,6 @@
         <!-- Camera feed -->
         <div class="video" id="camera1" style="display: flex;">
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <!-- <h3 style="text-align: center;">Left</h3> -->
             <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" style="width: 100%; height: calcl(100% - 5px);"/>
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Left</div>
@@ -14,7 +13,6 @@
         </div>
         <div class="video" id="camera2" style="display: flex;">
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <!-- <h3 style="text-align: center;">Right</h3> -->
             <img v-if="right_camera_feed" :src="right_camera_feed" :type="type" alt="Camera Feed" style="width: 100%; height: calcl(50% - 40px);"/>
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Right</div>
@@ -166,27 +164,15 @@ export default {
       });
 
       left_camera_image_Topic.subscribe((message) => {
-        // Decode ROS image data (base64 encoding)
-        // const {width, height, data, encoding} = message;
 
         this.type = message.type;
-        // const canvas = document.createElement("canvas");
-        // console.log(`Width of the frame=${width}`); 
-        // canvas.height = height;
-        // const context = canvas.getContext("2d");
-        // const imageData = context.createImageData(width, height);
- 
-        // // Convert to base64
-        // const rawData = this.arrayBufferToBase64(data);
-        // console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`)  
+
         try{
           console.log(`Message format=${message.format}`);   
-          // console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`);  
           
           const rawData = this.arrayBufferToBase64(message.data);
 
           const blob = new Blob([rawData], {type: "image/jpeg"});
-
 
           const url = URL.createObjectURL(blob);
 
@@ -204,8 +190,7 @@ export default {
 
             URL.revokeObjectURL(url);
           }
-          // const base64Image = `data:image/jpeg;base64,${btoa(rawData)}`;
-          // this.left_camera_feed = base64Image;
+
           image.src = url;
         }
         catch (error)
