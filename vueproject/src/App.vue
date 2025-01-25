@@ -2,25 +2,40 @@
   <div id="app">
     <div id="main-container">
 
-      <div class="row">
-        <!-- Camera feed -->
-        <div class="video" id="camera1" style="display: flex;">
+      <div id="visual_feeds">
+        <!-- Camera feed style="width: 100%; height: calcl(100% - 5px);"-->
+        <div class="video" id="camera1" >
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" style="width: 100%; height: calcl(100% - 5px);"/>
+            <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" />
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Left</div>
           </div>
         </div>
-        <div class="video" id="camera2" style="display: flex;">
+        <div class="video" id="camera2" >
           <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="right_camera_feed" :src="right_camera_feed" :type="type" alt="Camera Feed" style="width: 100%; height: calcl(50% - 40px);"/>
+            <img v-if="right_camera_feed" :src="right_camera_feed" :type="type" alt="Camera Feed" style="width: 600px; height: 300px;"/>
             <p v-else style="text-align: center;">Loading camera feed</p>
             <div class="floating-label">Right</div>
           </div>
         </div>
+        <div class="video" id="thermal_camera" >
+          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
+            <img v-if="right_camera_feed" :src="thermal_camera_feed" :type="type" alt="Camera Feed" style="width: 400px; height: 300px;"/>
+            <p v-else style="text-align: center;">Loading thermal camera feed</p>
+            <div class="floating-label">Thermal</div>
+          </div>
+        </div>
+
+        <div class="video" id="sat_image" >
+          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
+            <img v-if="right_camera_feed" :src="sat_image_preview" :type="type" alt="Satellite image" style="width: 300px; height: 300px;"/>
+            <p v-else style="text-align: center;">Satellite image</p>
+            <div class="floating-label">Thermal</div>
+          </div>
+        </div>
       </div>
 
-      <div class="row">
+      <div id="map-sidebar">
         <!-- Left section - The Map-->
         <div id="map"></div>
 
@@ -32,11 +47,63 @@
           <p>Roll: {{ roll }}</p>
           <p>Heading: {{ heading }}</p>
 
-          <p>Longitude: {{ lng }}</p>
-          <p>Latitude: {{ lat }}</p>
+          <div id="position" style="margin: 10px; text-align: left;">
+            <H5>Position</H5>
+            <p>Longitude: {{ lng }}</p>
+            <p>Latitude: {{ lat }}</p>
+          </div>
+          <div style="margin: 10px; text-align: left;">
+            <H5>Map source</H5>
+            <select name="map_source">
+              <option value="OpenSeaMap">OpenSeaMap</option>
+              <option value="Nutimeri">Nutimeri</option>
+            </select>
+          </div>
 
-          <p>Map Source</p>
-          <input type="checkbox" value="1" name="OpenSeaMap">
+          <div style="margin: 10px; text-align: left;">
+            <H5>Video options</H5>
+            <input type="checkbox" value="1" name="overlay_onboard_segmentation">
+            <label>Enable overlay</label>
+          </div>
+
+          <div style="margin: 10px; text-align: left;">
+            <H5>Map options</H5>
+            <div>
+              <div class="class_color water"></div>
+              <input type="checkbox" value="1" name="water_layer">
+              <label>Ice free</label>
+            </div>
+            <div>
+              <div class="class_color ice_floes"></div>
+              <input type="checkbox" value="1" name="ice_floes_layer"> 
+              <label>Level ice</label>
+            </div>
+            <div>
+              <div class="class_color broken_ice"></div>
+              <input type="checkbox" value="1" name="broken_ice_layer"> 
+              <label>Broken ice</label>
+            </div>
+            <div>
+              <div class="class_color underwater_ice"></div>
+              <input type="checkbox" value="1" name="underwater_ice_layer"> 
+              <label>Underwater ice</label>
+            </div>
+            <div>
+              <div class="class_color ice_ridges"></div>
+              <input type="checkbox" value="1" name="ice_ridges_layer"> 
+              <label>Ice ridges</label>
+            </div>
+            <div>
+              <div class="class_color others"></div>
+              <input type="checkbox" value="1" name="others_layer"> 
+              <label>Others(Ridges)</label>
+            </div>
+            <div>
+              <div class="class_color terrain"></div>
+              <input type="checkbox" value="1" name="terrain_layer"> 
+              <label>Terrain</label>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -159,7 +226,7 @@ export default {
 
       const left_camera_image_Topic = new ROSLIB.Topic({
         ros: this.ros,
-        name: "/cam1_image",
+        name: "/cam1_image_preview",
         messageType: "sensor_msgs/CompressedImage",
       });
 
@@ -198,82 +265,45 @@ export default {
           console.error("Failed to decode message");
         }
 
-        // if(data){
-        //   console.log("Data receiving", rawData.length);
-        // }
-
-        // // Decode image data.
-        // if (encoding === "bgr8"){
-
-        // //   for(let i = 0; i < rawData.length; i+=3){
-        // //     const index = (i / 3) * 4;
-        // //     imageData.data[index] = rawData[i + 2];
-        // //     imageData.data[index + 1] = rawData[i + 1];
-        // //     imageData.data[index + 2] = rawData[i];
-        // //     imageData.data[index + 3] = 255;
-        // //   }
-        // //   console.log("RGB converted", imageData.size);
-          
-        // //   context.putImageData(imageData, 0, 0);
-        //   // this.left_camera_feed = canvas.toDataURL("image/jpeg");
-        //   console.log("Received BGR8 image");
-
-        // }
-        // else if (encoding === "rgb8"){
-        //   this.left_camera_feed = `data:image/jpeg;base64,${this.arrayBufferToBase64(data)}`; 
-        // }
-        // else{
-        //   this.left_camera_feed = `data:image/jpeg;base64,${this.data}`; 
-        //   console.warn("Unsupported image encoding", encoding);
-        // }
       });
 
       const right_camera_image_Topic = new ROSLIB.Topic({
         ros: this.ros,
-        name: "/cam2_image",
-        messageType: "sensor_msgs/Image",
+        name: "/cam2_image_preview",
+        messageType: "sensor_msgs/CompressedImage",
       });
 
       right_camera_image_Topic.subscribe((message) => {
-        // Decode ROS image data (base64 encoding)
-        const {width, height, data, encoding} = message;
 
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d");
-        const imageData = context.createImageData(width, height);
- 
-        // Convert to base64
-        const rawData = this.arrayBufferToBase64(data);
-
-        console.log(`Received image with width=${width}, height=${height}, encoding=${encoding} and rawDatalength=${data.length}`)      
-
-        if(data){
-          console.log("Data receiving", rawData.length);
-        }
-
-        // Decode image data.
-        if (encoding === "bgr8"){
-
-          for(let i = 0; i < rawData.length; i+=3){
-            const index = (i / 3) * 4;
-            imageData.data[index] = rawData[i + 2];
-            imageData.data[index + 1] = rawData[i + 1];
-            imageData.data[index + 2] = rawData[i];
-            imageData.data[index + 3] = 255;
-          }
-          console.log("RGB converted", imageData.size);
+        try{
+          console.log(`Message format=${message.format}`);   
           
-          context.putImageData(imageData, 0, 0);
-          this.right_camera_feed = canvas.toDataURL("image/jpeg");
+          const rawData = this.arrayBufferToBase64(message.data);
 
+          const blob = new Blob([rawData], {type: "image/jpeg"});
+
+          const url = URL.createObjectURL(blob);
+
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          const image = new Image();
+
+          image.onload = () => {
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            context.drawImage(image, 0 ,0);
+
+            this.right_camera_feed = canvas.toDataURL("image/jpeg");
+
+            URL.revokeObjectURL(url);
+          }
+
+          image.src = url;
         }
-        else if (encoding === "rgb8"){
-          this.right_camera_feed = `data:image/jpeg;base64,${this.arrayBufferToBase64(data)}`; 
-        }
-        else{
-          console.warn("Unsupported image encoding", encoding);
+        catch (error)
+        {
+          console.error("Failed to decode message");
         }
       });
 
@@ -355,6 +385,7 @@ export default {
 </script>
 
 <style>
+
 *{
   padding: 0;
   margin: 0;
@@ -370,51 +401,119 @@ export default {
 }
 
 #main-container {
+  background-color: beige;
   display: flex;
   height: 100vh;
   overflow: hidden;
   flex-direction: column;
-  padding: 0;
-  margin: 0;
+  justify-items: flex-start;
 }
 
-.row{
+#visual_feeds{
   display: flex;
-  flex: 1;
+  flex-direction: row;
+  justify-items: center;
+  align-items: center;
+  gap: 1px;
 }
 
-div{
-  padding: 0;
-  margin: 0;
-}
-
-#sidebar  {
-  background-color: rgb(33, 34, 45);
-  border-radius: 10px;
-  margin: 10px 5px 0px 0px;
-  padding: 0px;
-  color: rgb(255, 255, 255);
-  text-align: center;
+#map-sidebar {
+  display: flex;
+  flex-direction: row;
+  gap: 1px;
 }
 
 #map {
   flex: 1;
-  height: 100%;
+  height: 100vh;
+  min-width: 100px;
   border-radius: 10px;
   padding: 0;
-  margin: 10px;
+  background-color: aquamarine;
+}
+
+#sidebar {
+  flex-grow: 0;
+  background-color: rgb(33, 34, 45);
+  border-radius: 10px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+
+
+
+.video{
+  background-color: gray;
+  height: 300px;
+  border-radius: 10px;
 }
 
 #camera1 {
-  flex: 1;
   padding: 0;
   margin: 0;
+  width: 600px;
+
 }
 
 #camera2 {
-  flex: 1;
   padding: 0;
   margin: 0;
+  width: 600px;
+}
+
+#thermal_camera {
+  padding: 0;
+  margin: 0;
+  width: 600px;
+}
+
+#sat_image {
+  padding: 0;
+  margin: 0;
+  width: 300px;
+}
+.class_color{
+  height: 15px;
+  width: 15px;
+  margin-right: 10px;
+  border-radius: 3px;
+  float: left;
+}
+
+.water{
+  background-color: rgb(109, 158, 235);
+}
+
+.ice_floes{
+  background-color: rgb(147, 196, 125);
+}
+
+.fast_ice{
+  background-color: rgb(0, 162, 122);
+}
+
+.ice_slush{
+  background-color: rgb(152, 72, 6);
+}
+
+.broken_ice{
+  background-color: rgb(255, 255, 0);
+}
+
+.underwater_ice{
+  background-color: rgb(194, 126, 160);
+}
+
+.ice_ridges{
+  background-color: rgb(255, 217, 102);
+}
+
+.others{
+  background-color: rgb(204, 0, 0);
+}
+
+.terrain{
+  background-color: rgb(51, 51, 51);
 }
 
 .floating-label {
