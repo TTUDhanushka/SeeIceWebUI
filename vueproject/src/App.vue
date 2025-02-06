@@ -1,387 +1,338 @@
 <template>
-  <div id="app">
-    <div id="main-container">
-
-      <div id="visual_feeds">
-        <!-- Camera feed style="width: 100%; height: calcl(100% - 5px);"-->
-        <div class="video" id="camera1" >
-          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="left_camera_feed" :src="left_camera_feed" alt="Camera Feed" />
-            <p v-else style="text-align: center;">Loading camera feed</p>
-            <div class="floating-label">Left</div>
-          </div>
+  <!-- <div id="app">
+    <div id="main-container"> -->
+      <!-- <div id="status-container">
+        <div id="logo">
+          <h3>SeeIce</h3>
+          <p class="status-text">Connected, {{ isConnected ? "yes" : "no" }}</p>
         </div>
-        <div class="video" id="camera2" >
-          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="right_camera_feed" :src="right_camera_feed" :type="type" alt="Camera Feed" style="width: 600px; height: 300px;"/>
-            <p v-else style="text-align: center;">Loading camera feed</p>
-            <div class="floating-label">Right</div>
-          </div>
-        </div>
-        <div class="video" id="thermal_camera" >
-          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="right_camera_feed" :src="thermal_camera_feed" :type="type" alt="Camera Feed" style="width: 400px; height: 300px;"/>
-            <p v-else style="text-align: center;">Loading thermal camera feed</p>
-            <div class="floating-label">Thermal</div>
-          </div>
+        <div id="ice-status"><p class="status-text">Ice condition: ICE FREE</p></div>
+        <div id="system-status">
+          <p class="status-text">Speed, {{ windowHeight }}</p>
+          <p class="status-text">Heading, {{ windowWidth }}</p>
+          <p class="status-text">Travelled, 0 km</p>
+          <p class="status-text">Time elapsed, 0 min</p>
         </div>
 
-        <div class="video" id="sat_image" >
-          <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-            <img v-if="right_camera_feed" :src="sat_image_preview" :type="type" alt="Satellite image" style="width: 300px; height: 300px;"/>
-            <p v-else style="text-align: center;">Satellite image</p>
-            <div class="floating-label">Thermal</div>
-          </div>
-        </div>
-      </div>
+      </div> -->
 
-      <div id="map-sidebar">
-        <!-- Left section - The Map-->
-        <div id="map"></div>
+      <nav >
+        <router-link to="/">Dashboard</router-link> |
+        <router-link to="/settings">Settings</router-link>
+      </nav>
+      <!-- <div v-if="$route.path === '/settings'" class="dashboard-container">
+        <h2>Settings layout</h2> -->
+      <router-view/>
+      <!-- </div> -->
+      <!-- <div v-else class="settings-container">
+        <h2>Dashboard layout</h2> -->
+        <!-- <router-view/>
+      </div> -->
 
-        <!-- Right side bar - ROS info-->
-        <div id="sidebar">
-          <h2>Telemetry</h2>
-          <p>Connected to ROS: {{ isConnected ? "yes" : "no" }}</p>
-          <p>Pitch: {{ pitch }}</p>
-          <p>Roll: {{ roll }}</p>
-          <p>Heading: {{ heading }}</p>
-
-          <div id="position" style="margin: 10px; text-align: left;">
-            <H5>Position</H5>
-            <p>Longitude: {{ lng }}</p>
-            <p>Latitude: {{ lat }}</p>
-          </div>
-          <div style="margin: 10px; text-align: left;">
-            <H5>Map source</H5>
-            <select name="map_source">
-              <option value="OpenSeaMap">OpenSeaMap</option>
-              <option value="Nutimeri">Nutimeri</option>
-            </select>
-          </div>
-
-          <div style="margin: 10px; text-align: left;">
-            <H5>Video options</H5>
-            <input type="checkbox" value="1" name="overlay_onboard_segmentation">
-            <label>Enable overlay</label>
-          </div>
-
-          <div style="margin: 10px; text-align: left;">
-            <H5>Map options</H5>
-            <div>
-              <div class="class_color water"></div>
-              <input type="checkbox" value="1" name="water_layer">
-              <label>Ice free</label>
-            </div>
-            <div>
-              <div class="class_color ice_floes"></div>
-              <input type="checkbox" value="1" name="ice_floes_layer"> 
-              <label>Level ice</label>
-            </div>
-            <div>
-              <div class="class_color broken_ice"></div>
-              <input type="checkbox" value="1" name="broken_ice_layer"> 
-              <label>Broken ice</label>
-            </div>
-            <div>
-              <div class="class_color underwater_ice"></div>
-              <input type="checkbox" value="1" name="underwater_ice_layer"> 
-              <label>Underwater ice</label>
-            </div>
-            <div>
-              <div class="class_color ice_ridges"></div>
-              <input type="checkbox" value="1" name="ice_ridges_layer"> 
-              <label>Ice ridges</label>
-            </div>
-            <div>
-              <div class="class_color others"></div>
-              <input type="checkbox" value="1" name="others_layer"> 
-              <label>Others(Ridges)</label>
-            </div>
-            <div>
-              <div class="class_color terrain"></div>
-              <input type="checkbox" value="1" name="terrain_layer"> 
-              <label>Terrain</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      <!-- <RgbVideoFeed/> -->
+      <!-- <div id="menu-container">
+        <button class="status-text" type="button">Cameras</button>
+        <button class="status-text" type="button">Overview</button>
+        <button class="status-text" type="button">Map view</button>
+      </div> -->
+    <!-- </div>
+  </div> -->
 </template>
 
-<script>
-import ROSLIB from "roslib";          // import the roslibjs library
-import "leaflet/dist/leaflet.css";    // Leaflet CSS
-import L from "leaflet";
+<script setup>
+// import { ref, onMounted, onUnmounted } from "vue";
+// import RgbVideoFeed from "./components/RgbVideoFeed.vue";
+// import ROSLIB from "roslib";          // import the roslibjs library
+// import "leaflet/dist/leaflet.css";    // Leaflet CSS
+// import L from "leaflet";
 
-export default {
-  name: 'App',  
-  data(){
-    return {
-      ros: null,          // ROS connection object
-      isConnected: false,
-      pitch: "N/A",
-      roll: "N/A",
-      heading: 0.0,
-      lng: "N/A",
-      lat: "N/A",
-      map: null,
-      left_camera_feed: null,
-      right_camera_feed: null,
-      type: null,
-    };
-  },
-  
-  methods:{
-    connectToROS(){
-      //Creates a new ROS connection
-      this.ros = new ROSLIB.Ros({
-            url: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-            ? 'ws://localhost:9090'
-            : 'ws://37.157.77.203:9090',
-        });
+// //   name: 'App',  
+// //   data(){
+// //     return {
+// //       ros: null,          // ROS connection object
+// //       isConnected: false,
+// //       pitch: "N/A",
+// //       roll: "N/A",
+// //       heading: 0.0,
+// //       speed: 0.0,
+// //       lng: "N/A",
+// //       lat: "N/A",
+// //       map: null,
+// //       left_camera_feed: null,
+// //       right_camera_feed: null,
+// //       thermal_camera_feed: null,
+// //       sat_image: null,
+// //       type: null,
+// //       windowWidth: window.innerWidth,
+// //       windowHeight: window.innerHeight
+// //     };
+//   },
+    // let windowWidth = 0;
+    // let windowHeight = 0;  
 
-      this.ros.on("connection", () => {
-        console.log("Connected to ROS!");
-        this.isConnected = true;
-        this.subscribeToTopics();
-      });
+  // methods:{
 
-      // Handle errors
-      this.ros.on("error", (error) => {
-        console.error("Error connecting to ROS: ", error);
-        this.isConnected = false;
-      });
+  //   connectToROS(){
+  //     //Creates a new ROS connection
+  //     this.ros = new ROSLIB.Ros({
+  //           url: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  //           ? 'ws://localhost:9090'
+  //           : 'ws://37.157.77.203:9090',
+  //       });
 
-      // Handle disconnection
-      this.ros.on("close", () => {
-        console.warn("Disconnected from ROS!");
-        this.isConnected = false;
-      });
-    },
+  //     this.ros.on("connection", () => {
+  //       console.log("Connected to ROS!");
+  //       this.isConnected = true;
+  //       this.subscribeToTopics();
+  //     });
 
-    subscribeToTopics(){
-      // Subscribe to Pitch topic
-      const pitchTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: "/pitch",
-        messageType: "std_msgs/Float32",
-      });
+  //     // Handle errors
+  //     this.ros.on("error", (error) => {
+  //       console.error("Error connecting to ROS: ", error);
+  //       this.isConnected = false;
+  //     });
 
-      pitchTopic.subscribe((message) => {
-        console.log("Received pitch:", message.data);
-        this.pitch = message.data.toFixed(2);
-      });
+  //     // Handle disconnection
+  //     this.ros.on("close", () => {
+  //       console.warn("Disconnected from ROS!");
+  //       this.isConnected = false;
+  //     });
+  //   },
 
-      // Subscribe to roll topic
-      const rollTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: '/roll',
-        messageType: 'std_msgs/Float32',
-      });
+  //   subscribeToTopics(){
+  //     // Subscribe to Pitch topic
+  //     const pitchTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: "/pitch",
+  //       messageType: "std_msgs/Float32",
+  //     });
 
-      rollTopic.subscribe((message) => {
-        console.log("Received roll:", message.data);
-        this.roll = message.data.toFixed(2);
-      });
+  //     pitchTopic.subscribe((message) => {
+  //       console.log("Received pitch:", message.data);
+  //       this.pitch = message.data.toFixed(2);
+  //     });
 
-      // Subscribe to heading topic
-      const hdtTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: '/heading',
-        messageType: 'std_msgs/Float32',
-      });
+  //     // Subscribe to roll topic
+  //     const rollTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: '/roll',
+  //       messageType: 'std_msgs/Float32',
+  //     });
 
-      hdtTopic.subscribe((message) => {
-        console.log("Received hdt:", message.data);
-        this.heading = message.data.toFixed(2);
-      });
+  //     rollTopic.subscribe((message) => {
+  //       console.log("Received roll:", message.data);
+  //       this.roll = message.data.toFixed(2);
+  //     });
 
+  //     // Subscribe to heading topic
+  //     const hdtTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: '/heading',
+  //       messageType: 'std_msgs/Float32',
+  //     });
 
-      // Subscribe to longitude topic
-      const longitudeTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: '/longitude',
-        messageType: 'std_msgs/Float32',
-      });
-
-      longitudeTopic.subscribe((message) => {
-        console.log("Received lng:", message.data);
-        this.lng = message.data.toFixed(6);
-      });
+  //     hdtTopic.subscribe((message) => {
+  //       console.log("Received hdt:", message.data);
+  //       this.heading = message.data.toFixed(2);
+  //     });
 
 
-      // Subscribe to heading topic
-      const latitudeTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: '/latitude',
-        messageType: 'std_msgs/Float32',
-      });
+  //     // Subscribe to longitude topic
+  //     const longitudeTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: '/longitude',
+  //       messageType: 'std_msgs/Float32',
+  //     });
 
-      latitudeTopic.subscribe((message) => {
-        console.log("Received lat:", message.data);
-        this.lat = message.data.toFixed(6);
-      });
+  //     longitudeTopic.subscribe((message) => {
+  //       console.log("Received lng:", message.data);
+  //       this.lng = message.data.toFixed(6);
+  //     });
 
-      const left_camera_image_Topic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: "/cam1_image_preview",
-        messageType: "sensor_msgs/CompressedImage",
-      });
 
-      left_camera_image_Topic.subscribe((message) => {
+  //     // Subscribe to heading topic
+  //     const latitudeTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: '/latitude',
+  //       messageType: 'std_msgs/Float32',
+  //     });
 
-        this.type = message.type;
+  //     latitudeTopic.subscribe((message) => {
+  //       console.log("Received lat:", message.data);
+  //       this.lat = message.data.toFixed(6);
+  //     });
 
-        try{
-          console.log(`Message format=${message.format}`);   
+  //     const left_camera_image_Topic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: "/cam1_image_preview",
+  //       messageType: "sensor_msgs/CompressedImage",
+  //     });
+
+  //     left_camera_image_Topic.subscribe((message) => {
+
+  //       this.type = message.type;
+
+  //       try{
+  //         console.log(`Message format=${message.format}`);   
           
-          const rawData = this.arrayBufferToBase64(message.data);
+  //         const rawData = this.arrayBufferToBase64(message.data);
 
-          const blob = new Blob([rawData], {type: "image/jpeg"});
+  //         const blob = new Blob([rawData], {type: "image/jpeg"});
 
-          const url = URL.createObjectURL(blob);
+  //         const url = URL.createObjectURL(blob);
 
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          const image = new Image();
+  //         const canvas = document.createElement("canvas");
+  //         const context = canvas.getContext("2d");
+  //         const image = new Image();
 
-          image.onload = () => {
-            canvas.width = image.width;
-            canvas.height = image.height;
+  //         image.onload = () => {
+  //           canvas.width = image.width;
+  //           canvas.height = image.height;
 
-            context.drawImage(image, 0 ,0);
+  //           context.drawImage(image, 0 ,0);
 
-            this.left_camera_feed = canvas.toDataURL("image/jpeg");
+  //           this.left_camera_feed = canvas.toDataURL("image/jpeg");
 
-            URL.revokeObjectURL(url);
-          }
+  //           URL.revokeObjectURL(url);
+  //         }
 
-          image.src = url;
-        }
-        catch (error)
-        {
-          console.error("Failed to decode message");
-        }
+  //         image.src = url;
+  //       }
+  //       catch (error)
+  //       {
+  //         console.error("Failed to decode message");
+  //       }
 
-      });
+  //     });
 
-      const right_camera_image_Topic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: "/cam2_image_preview",
-        messageType: "sensor_msgs/CompressedImage",
-      });
+  //     const right_camera_image_Topic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: "/cam2_image_preview",
+  //       messageType: "sensor_msgs/CompressedImage",
+  //     });
 
-      right_camera_image_Topic.subscribe((message) => {
+  //     right_camera_image_Topic.subscribe((message) => {
 
-        try{
-          console.log(`Message format=${message.format}`);   
+  //       try{
+  //         console.log(`Message format=${message.format}`);   
           
-          const rawData = this.arrayBufferToBase64(message.data);
+  //         const rawData = this.arrayBufferToBase64(message.data);
 
-          const blob = new Blob([rawData], {type: "image/jpeg"});
+  //         const blob = new Blob([rawData], {type: "image/jpeg"});
 
-          const url = URL.createObjectURL(blob);
+  //         const url = URL.createObjectURL(blob);
 
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          const image = new Image();
+  //         const canvas = document.createElement("canvas");
+  //         const context = canvas.getContext("2d");
+  //         const image = new Image();
 
-          image.onload = () => {
-            canvas.width = image.width;
-            canvas.height = image.height;
+  //         image.onload = () => {
+  //           canvas.width = image.width;
+  //           canvas.height = image.height;
 
-            context.drawImage(image, 0 ,0);
+  //           context.drawImage(image, 0 ,0);
 
-            this.right_camera_feed = canvas.toDataURL("image/jpeg");
+  //           this.right_camera_feed = canvas.toDataURL("image/jpeg");
 
-            URL.revokeObjectURL(url);
-          }
+  //           URL.revokeObjectURL(url);
+  //         }
 
-          image.src = url;
-        }
-        catch (error)
-        {
-          console.error("Failed to decode message");
-        }
-      });
+  //         image.src = url;
+  //       }
+  //       catch (error)
+  //       {
+  //         console.error("Failed to decode message");
+  //       }
+  //     });
 
-      const mapFeatureTopic = new ROSLIB.Topic({
-        ros: this.ros,
-        name: '/water_layer',
-        messageType: 'geographic_msgs/MapFeature'
-      });
+  //     const mapFeatureTopic = new ROSLIB.Topic({
+  //       ros: this.ros,
+  //       name: '/water_layer',
+  //       messageType: 'geographic_msgs/MapFeature'
+  //     });
 
-      mapFeatureTopic.subscribe((message) => {
-        console.log('Received map feature:', message);
-        this.processMapFeature(message);
-      });
+  //     mapFeatureTopic.subscribe((message) => {
+  //       console.log('Received map feature:', message);
+  //       this.processMapFeature(message);
+  //     });
 
-    },
+  //   },
 
-    bgr8Torgb8(bgrData){
+  //   bgr8Torgb8(bgrData){
       
-      // Convert bgr to rgb
-      const rgbData = new Uint8Array(bgrData.length);
+  //     // Convert bgr to rgb
+  //     const rgbData = new Uint8Array(bgrData.length);
 
-      for(let i = 0, j = 0; i < bgrData.length; i+= 3, j += 4){
-        rgbData[j] = bgrData[i];
-        rgbData[j + 1] = bgrData[i + 1];
-        rgbData[j + 2] = bgrData[i + 2];
-        rgbData[j + 3] = 255;
-      }
+  //     for(let i = 0, j = 0; i < bgrData.length; i+= 3, j += 4){
+  //       rgbData[j] = bgrData[i];
+  //       rgbData[j + 1] = bgrData[i + 1];
+  //       rgbData[j + 2] = bgrData[i + 2];
+  //       rgbData[j + 3] = 255;
+  //     }
 
-      return rgbData;
-    },
+  //     return rgbData;
+  //   },
 
-    arrayBufferToBase64(buffer){
-      const binaryString = atob(buffer);
-      const len = binaryString.length;
+  //   arrayBufferToBase64(buffer){
+  //     const binaryString = atob(buffer);
+  //     const len = binaryString.length;
 
-      const bytes = new Uint8Array(len);
+  //     const bytes = new Uint8Array(len);
 
-      for(let i=0; i< len; i++){
-        bytes[i] = binaryString.charCodeAt(i);
-      }
+  //     for(let i=0; i< len; i++){
+  //       bytes[i] = binaryString.charCodeAt(i);
+  //     }
 
-      return bytes;
-    },
+  //     return bytes;
+  //   },
 
-    initializeMap(){
-      // Create leaflet map instance
-      this.map = L.map("map").setView([59.3922, 24.65], 13);
+  //   initializeMap(){
+  //     // Create leaflet map instance
+  //     this.map = L.map("map").setView([59.3922, 24.65], 13);
 
-      //Addtile layer to the map
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: 'who ever needs to be',
-      }).addTo(this.map);
-    },
+  //     //Addtile layer to the map
+  //     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  //       attribution: 'who ever needs to be',
+  //     }).addTo(this.map);
+  //   },
 
-    processMapFeature(feature){
-      const verticesProp = feature.props.find((prop) => prop.key === 'vertices');
+  //   processMapFeature(feature){
+  //     const verticesProp = feature.props.find((prop) => prop.key === 'vertices');
 
-      if (!verticesProp){
-        console.warn('No vertices found in MapFeature');
-        return;
-      }
+  //     if (!verticesProp){
+  //       console.warn('No vertices found in MapFeature');
+  //       return;
+  //     }
 
-      // Parse vertices
-      const vertices = JSON.parse(verticesProp.value);
+  //     // Parse vertices
+  //     const vertices = JSON.parse(verticesProp.value);
 
-      const polygon = L.polygon(vertices, {color: 'blue'}).addTo(this.map);
+  //     const polygon = L.polygon(vertices, {color: 'blue'}).addTo(this.map);
 
-      this.map.fitBounds(polygon.getBounds());
+  //     this.map.fitBounds(polygon.getBounds());
 
-    },
-  },
+  //   },
+  // },
+  // const windowWidth = ref(window.innerWidth);
+  // const windowHeight = ref(window.innerHeight);
 
-  mounted(){
-    // Connect to ROS and initialize map on the component mount
-    this.connectToROS();
-    this.initializeMap();
-  },
-};
+  // const handleResize = () => {
+  //   windowWidth.value = window.innerWidth;
+  //   windowHeight.value = window.innerHeight;
+  //   console.log('Window width, %d', window.innerWidth);
+  // };
+
+  // onMounted(() => {
+  //   // Connect to ROS and initialize map on the component mount
+  //   // this.connectToROS();
+  //   // this.initializeMap();
+  //   window.addEventListener('resize', handleResize);
+  // });
+
+  // onUnmounted(() => {
+  //   window.removeEventListener('resize', handleResize)
+  // });
+
 </script>
 
 <style>
@@ -397,39 +348,51 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  background-color: rgb(23, 24, 33);
 }
 
 #main-container {
-  background-color: beige;
-  display: flex;
+  display: grid;
   height: 100vh;
-  overflow: hidden;
-  flex-direction: column;
-  justify-items: flex-start;
+  grid-template-rows: 40px 1fr 40px;
+  row-gap: 5px;
+  padding: 5px;  
+  background-color: rgb(23, 24, 33);
 }
 
-#visual_feeds{
-  display: flex;
-  flex-direction: row;
-  justify-items: center;
+#status-container{
+  display: grid;
+  justify-self: auto;
+  grid-template-columns: 1fr 1fr 1fr;
+  min-height: 40px;
+  column-gap: 5px;
+  background-color: rgb(33, 34, 45);
+  border-radius: 5px;
+  justify-content: center;
   align-items: center;
-  gap: 1px;
 }
 
-#map-sidebar {
+#page-container{
   display: flex;
   flex-direction: row;
-  gap: 1px;
+  background-color: #f4fe77;
+  border-radius: 5px;
+}
+
+#menu-container{
+  background-color: rgb(33, 34, 45);
+  display: flex;
+  flex-direction: row;
+  column-gap: 20px;
+  border-radius: 4px;
+  padding: 4px;
+  justify-content: center;
 }
 
 #map {
   flex: 1;
-  height: 100vh;
-  min-width: 100px;
+  /* min-width: 100px; */
   border-radius: 10px;
   padding: 0;
-  background-color: aquamarine;
 }
 
 #sidebar {
@@ -440,37 +403,67 @@ export default {
   text-align: center;
 }
 
+.status-text{
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: bold;
+  font-size: medium;
+  color: rgb(230, 230, 230);
+}
+
+#ice-status{
+  height: 30px;
+  width: 300px;
+  border-radius: 8px;
+  background-color: forestgreen;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-self: center;
+  align-self: center;
+}
+#logo{
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: row;
+  column-gap: 40px;
+  padding-left: 50px;
+}
+#system-status{
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  align-content: center;
+  column-gap: 30px;
+}
+
+
+
+button{
+  width: 160px;
+  background-color: #333;
+  border-radius: 8px;
+  border: none;
+  color: #999;
+}
+
+button:hover{
+  background-color: #ccc;
+  color: #222;
+}
 
 
 .video{
   background-color: gray;
-  height: 300px;
-  border-radius: 10px;
-}
-
-#camera1 {
-  padding: 0;
-  margin: 0;
-  width: 600px;
-
-}
-
-#camera2 {
-  padding: 0;
-  margin: 0;
-  width: 600px;
-}
-
-#thermal_camera {
-  padding: 0;
-  margin: 0;
-  width: 600px;
+  min-height: 300px;
+  /* border-radius: 10px; */
 }
 
 #sat_image {
   padding: 0;
   margin: 0;
-  width: 300px;
+
 }
 .class_color{
   height: 15px;
@@ -517,9 +510,8 @@ export default {
 }
 
 .floating-label {
-  position: absolute;
-  top: 10px;
-  left: 350px;
+  position: relative;
+  width: 100px;
   background-color: rgba(33, 34, 40, 0.7);
   color: rgb(255, 255, 255);
   padding: 5px 10px;
