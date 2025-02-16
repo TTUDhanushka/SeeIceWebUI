@@ -1,6 +1,5 @@
 <template>
     <div class="video-strip">
-        <h2>ROS Video Feed</h2>
         <div class="video-container">
             <div>
                 <!-- :src="left_camera_src" alt="ROS video" v-if="left_camera_src"v-else-->
@@ -17,10 +16,18 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount } from 'vue';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import ROSLIB from 'roslib';
 
-let ros = null;
+// let ros = null;
+
+const props = defineProps({
+    ros: {
+        type: Object,
+        required: true,
+    },
+});
+
 let left_camera_image_Topic = null;
 let right_camera_image_Topic = null;
 
@@ -92,8 +99,14 @@ function renderImage(imageData, canvasRef){
 
 const subscribeToTopics = () => {
 
+    if (props.ros){
+        console.log('Ros reached to the component level');
+    }else{
+        console.log('Ros has not reached to the component level');
+    }
+
     left_camera_image_Topic = new ROSLIB.Topic({
-        ros: ros,
+        ros: props.ros,
         name: "/cam1_image_preview",
         messageType: "sensor_msgs/CompressedImage",
     });
@@ -117,7 +130,7 @@ const subscribeToTopics = () => {
     });
 
     right_camera_image_Topic = new ROSLIB.Topic({
-        ros: ros,
+        ros: props.ros,
         name: "/cam2_image_preview",
         messageType: "sensor_msgs/CompressedImage",
     });
@@ -138,33 +151,33 @@ const subscribeToTopics = () => {
         });
 };
 
-const ConnectToRos = () => {
-    //Creates a new ROS connection
-    ros = new ROSLIB.Ros({
-        url: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'ws://localhost:9090'
-        : 'ws://37.157.77.203:9090',
-    });
+// const ConnectToRos = () => {
+//     //Creates a new ROS connection
+//     ros = new ROSLIB.Ros({
+//         url: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+//         ? 'ws://localhost:9090'
+//         : 'ws://37.157.77.203:9090',
+//     });
 
-    ros.on("connection", () => {
-        console.log("Connected to ROS!");
-        // subscribeToTopics();
-    });
+//     ros.on("connection", () => {
+//         console.log("Connected to ROS!");
+//         // subscribeToTopics();
+//     });
 
-    // Handle errors
-    ros.on("error", (error) => {
-        console.error("Error connecting to ROS: ", error);
-    });
+//     // Handle errors
+//     ros.on("error", (error) => {
+//         console.error("Error connecting to ROS: ", error);
+//     });
 
-    // Handle disconnection
-    ros.on("close", () => {
-        console.warn("Disconnected from ROS!");
-    });
-};
+//     // Handle disconnection
+//     ros.on("close", () => {
+//         console.warn("Disconnected from ROS!");
+//     });
+// };
 
 
 onMounted(() => {
-    ConnectToRos();
+    // ConnectToRos();
     subscribeToTopics();
 });
 
