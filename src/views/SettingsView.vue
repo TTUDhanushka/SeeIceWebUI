@@ -164,7 +164,14 @@
             }
 
             if(result.camera_matrix){
-                camera_matrix_result.value = result.camera_matrix.length;
+                const matrix_array = result.camera_matrix;
+                let string_matrix_values = '';
+
+                for (let i = 0; i < matrix_array.length; i++){
+                    string_matrix_values += matrix_array[i] + ' , ' ;
+                }
+
+                camera_matrix_result.value = string_matrix_values;
             }
 
             if(result.distortion_coefficients){
