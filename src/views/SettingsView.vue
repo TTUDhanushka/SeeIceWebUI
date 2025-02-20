@@ -1,12 +1,15 @@
 <template>
     <div class="Settings-page">
-        <h2 style="color: aquamarine;">Video settings</h2>
-        <RgbVideoFeed :ros="ros"/>
-        <div style="padding: 5px;">
-
-            <button @click="OnClickCaptureOneImage">Capture</button>
-            <p>Images captured: {{ capturedImagesCount }}</p>
-            <button @click="OnClickStartCalibration">Start camera calibration</button>
+        <h4>Video settings</h4>
+        <div id="video-container">
+            <div>
+                <RgbVideoFeed :ros="ros"/>
+            </div>
+            <div>
+                <button @click="OnClickCaptureOneImage">Capture</button>
+                <p>Images captured: {{ capturedImagesCount }}</p>
+                <button @click="OnClickStartCalibration">Start camera calibration</button>
+            </div>
         </div>
         <div id="feedback-container">
             <div>
@@ -14,8 +17,8 @@
             </div>
             <div>
                 <p>Images loading {{ inputsForDisplay }}</p>
-                <p>Distortion coefficient {{ distortion_coefficients_result }}</p>
-                <p>Camera matrix: {{ camera_matrix_result }}</p>
+                <p style="max-width: 200px;">Distortion coefficient {{ distortion_coefficients_result }}</p>
+                <p style="max-width: 200px;">Camera matrix: {{ camera_matrix_result }}</p>
                 <p>Image encode {{ imageType }}</p>
             </div>
         </div>
@@ -26,7 +29,7 @@
     import{ref, onMounted} from 'vue'
     import RgbVideoFeed from '../components/RgbVideoFeed.vue';
     import ROSLIB from 'roslib';
-    import {Buffer} from 'buffer';
+
 
     let captureClient = null;
     let calibrationClient = null;
@@ -184,23 +187,38 @@
 
 <style scoped>
 *{
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #252525;
+    padding: 0;
+    margin: 0;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    /* line-height: 1.0; */
+    font-weight: 400;
+
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #a8a8a8;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-h2 {
-  font-size: 3.2em;
-  line-height: 1.1;
+h4 {
+  font-size: 1.6em;
+  /* line-height: 1.1; */
+}
+
+.Settings-page{
+    height: 100vh;
+    /* width: 100%; */
+}
+
+#video-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 button 
@@ -229,6 +247,8 @@ button:focus-visible
 
 #feedback-container{
     display: flex;
+    flex-direction: row;
     justify-content: center;
+    align-items: center;
 }
 </style>

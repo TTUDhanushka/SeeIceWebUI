@@ -5,6 +5,22 @@
 
 <template>
   <div class="container">
+    <div id="status-container">
+      <div id="logo">
+        <h3>SeeIce</h3>
+        <p class="status-text">{{ ros_status ? "Connected" : "Disconnected" }}</p>
+        <p class="status-text">{{ gnss_status ? "GNSS : healthy" : "GNSS : weak" }}</p>
+      </div>
+      <div id="ice-status">
+        <p class="status-text">Ice condition: ICE FREE</p>
+      </div>
+      <div id="system-status">
+        <p class="status-text">Speed, {{ speed }} knots</p>
+        <p class="status-text">Heading, {{ heading }} degrees</p>
+        <p class="status-text">Travelled, {{travelled}} km</p>
+        <p class="status-text">Time elapsed, {{time_elapsed}} min</p>
+      </div>
+    </div>
     <div id="visual_feeds">
       <!-- Camera feed style="width: 100%; height: calcl(100% - 5px);"-->
       <div class="dashboard">
@@ -12,20 +28,18 @@
       </div>
 
       <!-- Thermal video -->
-      <div class="video" id="thermal_camera" >
-        <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-          <!-- <img v-if="thermal_camera_feed" :src="thermal_camera_feed" :type="type" alt="Thernal camera Feed"/> -->
-          <!-- <p v-else style="text-align: center; width: 400px; height: 300px;">Loading thermal camera feed</p> -->
+      <div id="visual_feeds" >
+        <div>
+          <ThermalVideoFeed :ros="ros"/>
           <div class="floating-label">Thermal</div>
         </div>
       </div>
 
       <!-- Satellite image -->
       <div class="video" id="sat_image" >
-        <div style="flex: 1; border: 0px solid #CCC; position: relative;">
-          <!-- <img v-if="sat_image" :src="sat_image_preview" :type="type" alt="Satellite image" style="width: 300px; height: 300px;"/> -->
-          <!-- <p v-else style="text-align: center; width: 300px; height: 300px;">Satellite image</p> -->
-          <div class="floating-label">Thermal</div>
+        <div>
+          <SatImage :ros="ros"/>
+          <div class="floating-label">Satellite</div>
         </div>
       </div>
 
@@ -37,20 +51,39 @@
 </template>
 
 <script setup>
-  import { onMounted} from 'vue'
+  import {ref, onMounted, onBeforeUnmount} from 'vue'
   import RgbVideoFeed from '../components/RgbVideoFeed.vue';
-  // import ROSLIB from 'roslib';
+  import ThermalVideoFeed from '../components/ThermalVideoFeed.vue';
+  import SatImage from '../components/SatImage.vue';
+  import nav_marker_png from '../assets/nav_marker.png'
+  import ROSLIB from 'roslib';
   import "leaflet/dist/leaflet.css";    // Leaflet CSS
   import L from "leaflet";
 
 
   let map = null;
 
+  const pitch = ref(0);
+  const roll = ref(0);
+  const heading = ref(0)
+  const speed = ref(0);
+  const longitude = ref(0);
+  const latitude = ref(0);
+
+  const gnss_status = ref(null);
+  const travelled = ref(null);
+  const time_elapsed = ref(null);
+  let marker = null;
+
   const props = defineProps({
     ros: {
         type: Object,
         required: true,
     },
+
+    ros_status: {
+      type: Boolean,
+    }
   });
 
   const initializeMap = () => {
@@ -63,180 +96,154 @@
     }).addTo(map);
   }
 
+  const nav_marker = L.icon({
+    iconUrl: nav_marker_png,
+    iconSize: [48, 48],
+    iconAnchor: [24, 48]
+  });
 
-  //---------------
-//   let ros = null;
-// let left_camera_image_Topic = null;
-// let right_camera_image_Topic = null;
+  function processMapFeature(feature){
+    const verticesProp = feature.props.find((prop) => prop.key === 'vertices');
 
-// const left_image_canvas = ref(null);
-// const right_image_canvas = ref(null);
+    if (!verticesProp){
+      console.warn('No vertices found in MapFeature');
+      return;
+    }
 
-// let canvas = null;
-// let image = new Image();
-// let img_context = null;
-// let prviousFrameData = null;
+    // Parse vertices
+    const vertices = JSON.parse(verticesProp.value);
 
-// function arrayBufferToBase64(buffer){
-//     const binaryString = atob(buffer);
-//     const len = binaryString.length;
+    const polygon = L.polygon(vertices, {color: 'blue'}).addTo(map);
 
-//     const bytes = new Uint8Array(len);
+    map.fitBounds(polygon.getBounds());
 
-//     for(let i=0; i< len; i++){
-//     bytes[i] = binaryString.charCodeAt(i);
-//     }
+  };
 
-//     return bytes;
-// }
+function UpdateMarker(lng, lat){
 
-// const frameRate = 10;
-// let lastFrameTime = 0;
+  if (marker !== null){
+    map.removeLayer(marker);
+    marker = null;
+  }
 
-// function renderImage(imageData, canvasRef){
-//     if (!imageData){
-//         return;
-//     }
+  if ((lng == null) || (lat == null)){
+    return;
+  } 
 
-//     // if (prviousFrameData == imageData){
-//     //     console.log('Duplicated frame');
-//     //     return;
-//     // }
+  marker = L.marker([lat, lng], {icon: nav_marker}).addTo(map);
+}
 
-//     // const rawData = arrayBufferToBase64(imageData);
+const subscribeToTopics = () => {
 
-//     // const blob = new Blob([rawData], {type: "image/jpeg"});
+      // Subscribe to Pitch topic
+      const pitchTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: "/pitch",
+        messageType: "std_msgs/Float32",
+      });
 
-//     // const url = URL.createObjectURL(blob);
-//     const now = performance.now();
+      pitchTopic.subscribe((message) => {
+        // console.log("Received pitch:", message.data);
+        pitch.value = message.data.toFixed(2);
+      });
 
-//     if (now - lastFrameTime < 1000 / frameRate) return;
-//     lastFrameTime = now;
+      // Subscribe to roll topic
+      const rollTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: '/roll',
+        messageType: 'std_msgs/Float32',
+      });
 
-//     canvas = canvasRef.value;
-//     img_context = canvas.getContext("2d");
+      rollTopic.subscribe((message) => {
+        // console.log("Received roll:", message.data);
+        roll.value = message.data.toFixed(2);
+      });
 
-//     if(image){
-//         image.onload = null;
-//         image.src = '';
-//     }
+      // Subscribe to heading topic
+      const hdtTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: '/heading',
+        messageType: 'std_msgs/Float32',
+      });
 
-//     image.onload = () => {
-
-//         img_context.clearRect(0 ,0, 600, 300);
-//         img_context.drawImage(image, 0 ,0, 600, 300); 
-
-//         // URL.revokeObjectURL(url);
-//         image.src = '';
-//         imageData = null;
-//     }
-
-//     image.src = `data:image/jpeg;base64,${imageData}`;
-
-// }
-
-// const subscribeToTopics = () => {
-
-//     left_camera_image_Topic = new ROSLIB.Topic({
-//         ros: ros,
-//         name: "/cam1_image_preview",
-//         messageType: "sensor_msgs/CompressedImage",
-//     });
-
-//     left_camera_image_Topic.subscribe((message) => {
+      hdtTopic.subscribe((message) => {
+        console.log("Received hdt:", message.data);
+        heading.value = message.data.toFixed(2);
+      });
 
 
-//         try{
-//             // console.log(`Message format=${message.format}`);   
+      // Subscribe to longitude topic
+      const longitudeTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: '/longitude',
+        messageType: 'std_msgs/Float32',
+      });
 
-//             renderImage(message.data, left_image_canvas)
-//             message.data = null;
+      longitudeTopic.subscribe((message) => {
+        // console.log("Received lng:", message.data);
+        longitude.value = message.data.toFixed(6);
 
-//         }
-//         catch (error)
-//         {
-//             console.error("Failed to decode message");
-//         }
+        UpdateMarker(longitude.value, latitude.value);
+
+        if (longitude.value === 0){
+          gnss_status.value = false;
+        }
+        else{
+          gnss_status.value = true;
+        }
+      });
 
 
-//     });
+      // Subscribe to heading topic
+      const latitudeTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: '/latitude',
+        messageType: 'std_msgs/Float32',
+      });
 
-//     right_camera_image_Topic = new ROSLIB.Topic({
-//         ros: ros,
-//         name: "/cam2_image_preview",
-//         messageType: "sensor_msgs/CompressedImage",
-//     });
+      latitudeTopic.subscribe((message) => {
+        // console.log("Received lat:", message.data);
+        latitude.value = message.data.toFixed(6);
 
-//     right_camera_image_Topic.subscribe((message) => {
+        if (latitude.value === 0){
+          gnss_status.value = false;
+        }
+        else{
+          gnss_status.value = true;
+        }
+      });
 
-//         try{
-//             // console.log(`Message format=${message.format}`);   
-            
-//             renderImage(message.data, right_image_canvas)
-//             message.data = null;
-//         }
-//         catch (error)
-//         {
-//             console.error("Failed to decode message");
-//         }
+      const mapFeatureTopic = new ROSLIB.Topic({
+        ros: props.ros,
+        name: '/water_layer',
+        messageType: 'geographic_msgs/MapFeature'
+      });
 
-//         });
-// };
+      mapFeatureTopic.subscribe((message) => {
+        console.log('Received map feature:', message);
+        processMapFeature(message);
+      });
+
+};
 
 // const ConnectToRos = () => {
-//     //Creates a new ROS connection
-//     ros = new ROSLIB.Ros({
-//         url: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-//         ? 'ws://localhost:9090'
-//         : 'ws://37.157.77.203:9090',
-//     });
 
-//     rosHost.value = ros;
-
-//     ros.on("connection", () => {
-//         console.log("Connected to ROS!");
-//         // subscribeToTopics();
-//     });
-
-//     // Handle errors
-//     ros.on("error", (error) => {
-//         console.error("Error connecting to ROS: ", error);
-//     });
-
-//     // Handle disconnection
-//     ros.on("close", () => {
-//         console.warn("Disconnected from ROS!");
-//     });
 // };
   //---------------
   onMounted(() => {
 
     // ConnectToRos();
-    // subscribeToTopics();
+    subscribeToTopics();
 
     initializeMap();
 
   })
 
-//   onBeforeUnmount(() => {
-//     // Clear image canvases
-//     const canvasRefs = {left_image_canvas, right_image_canvas}
+  onBeforeUnmount(() => {
 
-//     for (let n = 1; n <  canvasRefs.length; n++){
-//         if (canvasRefs(n)){
-//             const ctx = canvasRefs(n).getContext('2d');
-//             ctx.clearRect(0, 0, 600, 300);
-//         }
+    // map = null;
 
-//         canvasRefs(n).value = '';
-
-//     }
-
-//     // Unsubscribe
-//     left_camera_image_Topic.unsubscribe();
-//     right_camera_image_Topic.unsubscribe();
-
-// });
+  });
 
 </script>
 
@@ -249,13 +256,58 @@
 .container{
   height: 100vh;
   display: grid;
-  grid-template-rows: 300px 1fr;
+  grid-template-rows: 40px 310px 1fr;
+}
+
+#status-container{
+  display: grid;
+  justify-self: auto;
+  grid-template-columns: 1fr 1fr 1fr;
+  min-height: 40px;
+  column-gap: 5px;
+  background-color: rgb(48, 49, 56);
+  justify-content: center;
+  align-items: center;
+  color: beige;
+}
+
+#ice-status{
+  height: 30px;
+  width: 300px;
+  border-radius: 8px;
+  background-color: forestgreen;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  justify-self: center;
+  align-self: center;
+}
+
+#logo{
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 40px;
+  padding-left: 50px;
+}
+
+#system-status{
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  align-content: center;
+  column-gap: 30px;
 }
 
 #visual_feeds{
   display: grid;
-  justify-items: center;
-  grid-template-columns: 4fr 4fr 3fr 2fr;
+  justify-items: flex-start;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: 8fr 3fr 2fr;
 }
 
 #map{

@@ -430,6 +430,7 @@
   column-gap: 40px;
   padding-left: 50px;
 }
+
 #system-status{
   display: flex;
   justify-content: flex-end;

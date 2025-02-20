@@ -2,14 +2,26 @@
     <div class="video-strip">
         <div class="video-container">
             <div>
-                <!-- :src="left_camera_src" alt="ROS video" v-if="left_camera_src"v-else-->
-                <canvas ref="left_image_canvas" height="300" width="600" ></canvas>
-                <p>Loading</p>
+                <div class="video-label">
+                    <img src="" style="background-color: black; width: 30px;">
+                    <p>Port - Forward</p>
+                    <label class="switch">
+                        <input type="checkbox" v-model="isView_1_ActiveTopic" @change="switchTopicsView_1" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <canvas ref="left_image_canvas" height="280" width="560" ></canvas>
             </div>
             <div>
-                <!-- <img :src="right_camera_src" alt="ROS video" v-if="right_camera_src"/> -->
-                <canvas ref="right_image_canvas" height="300" width="600" ></canvas>
-                <p>Loading</p>
+                <div class="video-label">
+                    <img src="" style="background-color: black; width: 30px;">
+                    <p>Starboard - Forward</p>
+                    <label class="switch">
+                        <input type="checkbox" v-model="isView_2_ActiveTopic" @change="switchTopicsView_2" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <canvas ref="right_image_canvas" height="280" width="560" ></canvas>
             </div>
         </div>
     </div>
@@ -28,8 +40,13 @@ const props = defineProps({
     },
 });
 
-let left_camera_image_Topic = null;
-let right_camera_image_Topic = null;
+const isView_1_ActiveTopic = ref(null);
+const left_camera_image_Topic = ref(null);
+const left_camera_seg_image_Topic = ref(null);
+
+const isView_2_ActiveTopic = ref(null);
+const right_camera_seg_image_Topic = ref(null);
+const right_camera_image_Topic = ref(null);
 
 const left_image_canvas = ref(null);
 const right_image_canvas = ref(null);
@@ -37,20 +54,10 @@ const right_image_canvas = ref(null);
 let canvas = null;
 let image = new Image();
 let img_context = null;
-// let prviousFrameData = null;
 
-// function arrayBufferToBase64(buffer){
-//     const binaryString = atob(buffer);
-//     const len = binaryString.length;
+const view_1_current_topic = ref(null)
+const view_2_current_topic = ref(null)
 
-//     const bytes = new Uint8Array(len);
-
-//     for(let i=0; i< len; i++){
-//     bytes[i] = binaryString.charCodeAt(i);
-//     }
-
-//     return bytes;
-// }
 
 const frameRate = 10;
 let lastFrameTime = 0;
@@ -85,8 +92,8 @@ function renderImage(imageData, canvasRef){
 
     image.onload = () => {
 
-        img_context.clearRect(0 ,0, 600, 300);
-        img_context.drawImage(image, 0 ,0, 600, 300); 
+        img_context.clearRect(0 ,0, 560, 280);
+        img_context.drawImage(image, 0 ,0, 560, 280); 
 
         // URL.revokeObjectURL(url);
         image.src = '';
@@ -99,45 +106,68 @@ function renderImage(imageData, canvasRef){
 
 const subscribeToTopics = () => {
 
-    if (props.ros){
-        console.log('Ros reached to the component level');
-    }else{
-        console.log('Ros has not reached to the component level');
-    }
-
-    left_camera_image_Topic = new ROSLIB.Topic({
+    left_camera_image_Topic.value = new ROSLIB.Topic({
         ros: props.ros,
         name: "/cam1_image_preview",
         messageType: "sensor_msgs/CompressedImage",
     });
 
-    left_camera_image_Topic.subscribe((message) => {
+    left_camera_seg_image_Topic.value = new ROSLIB.Topic({
+        ros: props.ros,
+        name: "/cam1_seg_preview",
+        messageType: "sensor_msgs/CompressedImage",
+    });
 
+    right_camera_image_Topic.value = new ROSLIB.Topic({
+        ros: props.ros,
+        name: "/cam2_image_preview",
+        messageType: "sensor_msgs/CompressedImage",
+    });
 
-        try{
+    right_camera_seg_image_Topic.value = new ROSLIB.Topic({
+        ros: props.ros,
+        name: "/cam2_seg_preview",
+        messageType: "sensor_msgs/CompressedImage",
+    });
+
+    // right_camera_image_Topic.subscribe((message) => {
+
+    //     try{
+    //         // console.log(`Message format=${message.format}`);   
+            
+    //         renderImage(message.data, right_image_canvas)
+    //         message.data = null;
+    //     }
+    //     catch (error)
+    //     {
+    //         console.error("Failed to decode message");
+    //     }
+
+    // });
+
+    view_1_current_topic.value = left_camera_image_Topic.value;
+    view_1_current_topic.value.subscribe(handleMessageLeft);
+
+    view_2_current_topic.value = right_camera_image_Topic.value;
+    view_2_current_topic.value.subscribe(handleMessageRight);
+};
+
+const handleMessageLeft = (message) => {
+    try{
             // console.log(`Message format=${message.format}`);   
-
+            
             renderImage(message.data, left_image_canvas)
             message.data = null;
-
         }
         catch (error)
         {
             console.error("Failed to decode message");
         }
 
+};
 
-    });
-
-    right_camera_image_Topic = new ROSLIB.Topic({
-        ros: props.ros,
-        name: "/cam2_image_preview",
-        messageType: "sensor_msgs/CompressedImage",
-    });
-
-    right_camera_image_Topic.subscribe((message) => {
-
-        try{
+const handleMessageRight = (message) => {
+    try{
             // console.log(`Message format=${message.format}`);   
             
             renderImage(message.data, right_image_canvas)
@@ -148,7 +178,27 @@ const subscribeToTopics = () => {
             console.error("Failed to decode message");
         }
 
-        });
+};
+
+const switchTopicsView_1 = () => {
+
+    if (view_1_current_topic.value){
+        view_1_current_topic.value.unsubscribe();
+    }
+
+    view_1_current_topic.value = isView_1_ActiveTopic.value ? left_camera_seg_image_Topic.value : left_camera_image_Topic.value;
+    view_1_current_topic.value.subscribe(handleMessageLeft);
+
+    console.log(`switching topics ${isView_1_ActiveTopic.value? 'topic_raw' : 'topic_segment'}`);
+};
+
+const switchTopicsView_2 = () => {
+    if (view_2_current_topic.value){
+        view_2_current_topic.value.unsubscribe();
+    }
+
+    view_2_current_topic.value = isView_2_ActiveTopic.value ? right_camera_image_Topic.value : right_camera_seg_image_Topic.value;
+    view_2_current_topic.value.subscribe(handleMessageRight);
 };
 
 // const ConnectToRos = () => {
@@ -188,15 +238,15 @@ onBeforeUnmount(() => {
     for (let n = 1; n <  canvasRefs.length; n++){
         if (canvasRefs(n)){
             const ctx = canvasRefs(n).getContext('2d');
-            ctx.clearRect(0, 0, 600, 300);
+            ctx.clearRect(0, 0, 560, 280);
         }
 
         canvasRefs(n).value = '';
     }
 
     // Unsubscribe
-    left_camera_image_Topic.unsubscribe();
-    right_camera_image_Topic.unsubscribe();
+    // left_camera_image_Topic.unsubscribe();
+    // right_camera_image_Topic.unsubscribe();
 
 });
 
@@ -207,13 +257,70 @@ onBeforeUnmount(() => {
 *{
     padding: 0px;
     margin: 0px;
+
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 .video-container{
     display: inline-flex;
     flex-direction: row;
-    background-color: #688;
     justify-items: center;
+}
+
+.video-label{
+    color:white;
+    height: 30px;
+    background: linear-gradient( 90deg, rgba(159, 241, 92, 0.9), rgba(26, 46, 29, 0.226));
+    display: grid;
+    justify-items: flex-start;
+    grid-template-columns: 50px 1fr 50px;
+    align-items: center;
+    font-family: inherit;
+    left: 20px;
+}
+.switch{
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 18px;
+}
+
+.switch input{
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider{
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: 0.4s;
+    border-radius: 18px;
+}
+
+.slider::before{
+    position: absolute;
+    content: "";
+    height: 10px;
+    width: 10px;
+    left: 4px;
+    bottom: 4px;
+    background-color: antiquewhite;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider{
+    background-color: rgba(159, 241, 92, 1);
+}
+
+input:checked + .slider:before{
+    transform: translateX(10px);
 }
 
 </style>
