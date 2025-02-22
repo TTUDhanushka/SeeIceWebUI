@@ -66,8 +66,8 @@ onMounted(()=>{
         ros: props.ros,
         name: "/image_topic_thermal",
         // name: "/cam1_seg_preview",
-        messageType: "sensor_msgs/Image",
-        // messageType: "sensor_msgs/CompressedImage",
+        //messageType: "sensor_msgs/Image",
+        messageType: "sensor_msgs/CompressedImage",
     });
 
     thermal_video_topic.subscribe((message) => {
